@@ -1,312 +1,232 @@
 generator client {
   provider = "prisma-client-js"
-  // generator = menentukan apa yang di-generate oleh Prisma
-  // prisma-client-js = generate TypeScript client yang kita import di kode
 }
 
 datasource db {
-  provider = "mysql"
-  // provider = jenis database yang dipakai
-
-  url = env("DATABASE_URL")
-  // url = string koneksi database
-  // env("DATABASE_URL") = ambil nilainya dari file .env
+  provider = "mysql" // Sesuaikan dengan database yang digunakan (mysql/postgresql)
+  url      = env("DATABASE_URL")
 }
 
-// ── ENUM ─────────────────────────────────────────────────────
-// Enum = tipe data dengan pilihan nilai yang sudah ditentukan
-// Dengan enum Role, kolom role di tabel Pegawai hanya bisa berisi
-// salah satu dari tiga nilai ini — tidak bisa nilai lain
-
-enum Role {
+// ================= ENUM =================
+// entitas pegawai hanya dapat di isi dengan nilai di enum
+enum RolePegawai {
   ADMIN
   DOKTER
   PERAWAT
 }
 
-// ── PEGAWAI ──────────────────────────────────────────────────
-// model = mendefinisikan satu tabel di database
-// Pegawai = nama tabelnya
+// entitas tiperawat hanya dapat di isi oleh nilai di bawah ini
+enum TipeRawat {
+  RAWAT_INAP
+  RAWAT_JALAN
+}
+
+// ================= MODELS =================
 
 model Pegawai {
-  id_pegawai  Int     @id @default(autoincrement())
-  // Int = tipe data angka bulat (integer)
-  // @id = ini adalah primary key (penanda unik setiap baris di tabel)
-  // @default(autoincrement()) = nilainya otomatis bertambah (1, 2, 3, dst)
-  //                             kita tidak perlu isi manual setiap buat data baru
+  id_pegawai   Int           @id @default(autoincrement())
+  nama         String
+  role         RolePegawai
+  
+  // Alamat (Composite)
+  jalan        String? // tanda tanya berarti opsional | bisa kosong
+  kota         String?
+  kode_pos     String?
 
-  nama        String
-  // String = tipe data teks
-
-  alamat      String?
-  // Tanda ? setelah tipe = field ini boleh kosong (nullable/opsional)
-  // Kalau tidak ada ?, field wajib diisi
-
-  no_telp     String?
-
-  role        Role
-  // Role = tipe enum yang kita definisikan di atas
-  // Nilainya hanya bisa ADMIN, DOKTER, atau PERAWAT
-
-  // Relasi ke diri sendiri: satu pegawai bisa memimpin banyak pegawai lain
-  pimpinan_id Int?
-  // foreign key opsional — berisi id_pegawai dari pegawai yang jadi atasan
-
-  pimpinan    Pegawai?  @relation("Memimpin", fields: [pimpinan_id], references: [id_pegawai])
-  // pimpinan = relasi ke Pegawai lain (atasan dari pegawai ini)
-  // @relation("Memimpin") = nama relasi. Harus sama di kedua sisi relasi self-referencing
-  // fields: [pimpinan_id] = kolom di tabel ini yang jadi foreign key
-  // references: [id_pegawai] = kolom di tabel yang direferensikan (tabel Pegawai juga)
-
-  bawahan     Pegawai[] @relation("Memimpin")
-  // bawahan = daftar semua Pegawai yang dipimpin oleh pegawai ini
-  // Pegawai[] = array/list (satu pegawai bisa punya banyak bawahan)
-
-  admin       Admin?
-  dokter      Dokter?
-  perawat     Perawat?
-  // Relasi one-to-one ke tabel subtype
-  // Tanda ? karena satu pegawai hanya punya SATU subtype
-  // (kalau role DOKTER, hanya tabel Dokter yang terisi)
-
-  pendaftaran Pendaftaran[]
-  // Satu pegawai bisa menginput banyak pendaftaran
-}
-
-// Tabel subtype Admin — hanya berisi data tambahan khusus admin
-model Admin {
-  id_pegawai Int     @id
-  // id_pegawai sekaligus jadi primary key DAN foreign key ke tabel Pegawai
-  // Ini pola one-to-one: satu baris Admin = satu baris Pegawai
-
-  pegawai    Pegawai @relation(fields: [id_pegawai], references: [id_pegawai])
-  // relasi balik ke tabel Pegawai
-}
-
-model Dokter {
-  id_pegawai   Int     @id
+  // Spesifik Dokter
   spesialisasi String?
-  pegawai      Pegawai @relation(fields: [id_pegawai], references: [id_pegawai])
-  pemeriksaan  Pemeriksaan[]
-  // Satu dokter bisa melakukan banyak pemeriksaan
-}
 
-model Perawat {
-  id_pegawai   Int     @id
+  // Spesifik Perawat
   tipe_perawat String?
   unit_bagian  String?
-  pegawai      Pegawai @relation(fields: [id_pegawai], references: [id_pegawai])
+
+  // Self-Relation (Memimpin)
+  pimpinanId   Int?
+  pimpinan     Pegawai?      @relation("Memimpin", fields: [pimpinanId], references: [id_pegawai])
+  bawahan      Pegawai[]     @relation("Memimpin")
+
+  // Relasi
+  no_telp      PegawaiTelp[]
+  pendaftaran  Pendaftaran[] // Sebagai Admin
+  pemeriksaan  Pemeriksaan[] // Sebagai Dokter
+  akun         AkunPegawai?
+  jadwal       JadwalDokter[]
 }
 
-// ── PASIEN ───────────────────────────────────────────────────
+model PegawaiTelp {
+  id         Int     @id @default(autoincrement())
+  no_telp    String
+  pegawaiId  Int
+  pegawai    Pegawai @relation(fields: [pegawaiId], references: [id_pegawai], onDelete: Cascade)
+}
 
 model Pasien {
-  id_pasien     Int       @id @default(autoincrement())
+  id_pasien     Int           @id @default(autoincrement())
   nama          String
-  alamat        String?
-  no_telp       String?
-  tanggal_lahir DateTime?
-  // DateTime = tipe data tanggal dan waktu
+  jenis_kelamin String
+  tanggal_lahir DateTime
+  
+  // Alamat (Composite)
+  jalan         String?
+  kota          String?
+  kode_pos      String?
 
-  jenis_kelamin String?
+  // Relasi
+  no_telp       PasienTelp[]
   pendaftaran   Pendaftaran[]
   pembayaran    Pembayaran[]
 }
 
-// ── PENDAFTARAN ──────────────────────────────────────────────
+model PasienTelp {
+  id         Int     @id @default(autoincrement())
+  no_telp    String
+  pasienId   Int
+  pasien     Pasien  @relation(fields: [pasienId], references: [id_pasien], onDelete: Cascade)
+}
 
 model Pendaftaran {
-  id_pendaftaran    Int      @id @default(autoincrement())
-  tanggal_daftar    DateTime @default(now())
-  // @default(now()) = otomatis diisi tanggal & waktu saat ini ketika data dibuat
-  // kita tidak perlu kirim tanggal dari frontend, database yang isi sendiri
-
+  id_pendaftaran    Int           @id @default(autoincrement())
+  tanggal_daftar    DateTime
   keterangan_daftar String?
 
-  id_pasien  Int
-  pasien     Pasien  @relation(fields: [id_pasien], references: [id_pasien])
-  // id_pasien = foreign key ke tabel Pasien
-  // Setiap pendaftaran milik satu pasien
+  pasienId          Int
+  pasien            Pasien        @relation(fields: [pasienId], references: [id_pasien])
+  adminId           Int
+  admin             Pegawai       @relation(fields: [adminId], references: [id_pegawai])
 
-  id_pegawai Int
-  pegawai    Pegawai @relation(fields: [id_pegawai], references: [id_pegawai])
-  // Setiap pendaftaran diinput oleh satu pegawai
-
-  pemeriksaan Pemeriksaan[]
-  // Satu pendaftaran bisa menghasilkan banyak pemeriksaan
+  pemeriksaan       Pemeriksaan[]
 }
-
-// ── PEMERIKSAAN ──────────────────────────────────────────────
 
 model Pemeriksaan {
-  id_pemeriksaan      Int      @id @default(autoincrement())
-  tanggal_pemeriksaan DateTime @default(now())
-  diagnosa            String?
-  keluhan             String?
+  id_pemeriksaan      Int        @id @default(autoincrement())
+  tanggal_pemeriksaan DateTime
+  keluhan             String     @db.Text
+  diagnosa            String     @db.Text
 
-  id_pendaftaran Int
-  pendaftaran    Pendaftaran @relation(fields: [id_pendaftaran], references: [id_pendaftaran])
+  pendaftaranId       Int
+  pendaftaran         Pendaftaran @relation(fields: [pendaftaranId], references: [id_pendaftaran])
+  dokterId            Int
+  dokter              Pegawai     @relation(fields: [dokterId], references: [id_pegawai])
 
-  id_dokter Int
-  dokter    Dokter @relation(fields: [id_dokter], references: [id_pegawai])
-  // id_dokter mereferensikan kolom id_pegawai di tabel Dokter
-  // (bukan id_dokter, karena primary key Dokter adalah id_pegawai)
-
-  penyakit PemeriksaanPenyakit[]
-  // Relasi M:M ke Penyakit melalui junction table
-
-  resep    Resep[]
+  penyakit            Penyakit[]  @relation("PemeriksaanPenyakit")
 }
-
-// ── PENYAKIT ─────────────────────────────────────────────────
 
 model Penyakit {
-  id_penyakit         Int     @id @default(autoincrement())
+  id_penyakit         Int           @id @default(autoincrement())
   nama_penyakit       String
-  keterangan_penyakit String?
+  keterangan_penyakit String?       @db.Text
 
-  pemeriksaan PemeriksaanPenyakit[]
-  tindakan    PenyakitTindakan[]
+  pemeriksaan         Pemeriksaan[] @relation("PemeriksaanPenyakit")
+  tindakan            Tindakan[]    @relation("PenyakitTindakan")
 }
-
-// Junction table untuk relasi M:M antara Pemeriksaan dan Penyakit
-// Kenapa butuh tabel ini? Karena satu pemeriksaan bisa menemukan BANYAK penyakit,
-// dan satu penyakit bisa ditemukan di BANYAK pemeriksaan.
-// Database tidak bisa representasikan M:M langsung, harus pakai tabel perantara.
-
-model PemeriksaanPenyakit {
-  id_pemeriksaan Int
-  id_penyakit    Int
-
-  pemeriksaan    Pemeriksaan @relation(fields: [id_pemeriksaan], references: [id_pemeriksaan])
-  penyakit       Penyakit    @relation(fields: [id_penyakit], references: [id_penyakit])
-
-  @@id([id_pemeriksaan, id_penyakit])
-  // @@id([...]) = composite primary key (primary key gabungan)
-  // Kombinasi id_pemeriksaan + id_penyakit harus unik
-  // Ini mencegah duplikasi — misal: pemeriksaan 1 + penyakit 2 hanya bisa ada sekali
-}
-
-// ── TINDAKAN ─────────────────────────────────────────────────
 
 model Tindakan {
-  id_tindakan    Int     @id @default(autoincrement())
+  id_tindakan    Int        @id @default(autoincrement())
   nama_tindakan  String
-  biaya_tindakan Decimal @db.Decimal(10, 2)
-  // Decimal = tipe data angka desimal, cocok untuk menyimpan nilai uang
-  // @db.Decimal(10, 2) = maksimal 10 digit total, 2 digit di belakang koma
-  // Contoh nilai yang valid: 99999999.99
+  biaya_tindakan Float
 
-  penyakit PenyakitTindakan[]
+  jenisRawatId   Int
+  jenis_rawat    JenisRawat @relation(fields: [jenisRawatId], references: [id_jenis_rawat])
+
+  penyakit       Penyakit[] @relation("PenyakitTindakan")
 }
-
-// Junction table M:M antara Penyakit dan Tindakan
-model PenyakitTindakan {
-  id_penyakit Int
-  id_tindakan Int
-
-  penyakit    Penyakit  @relation(fields: [id_penyakit], references: [id_penyakit])
-  tindakan    Tindakan  @relation(fields: [id_tindakan], references: [id_tindakan])
-
-  @@id([id_penyakit, id_tindakan])
-}
-
-// ── JENIS RAWAT & SUBTYPE ────────────────────────────────────
 
 model JenisRawat {
-  id_jenis_rawat Int    @id @default(autoincrement())
-  tipe           String
-  // Isinya salah satu dari: "RAWAT_INAP" atau "RAWAT_JALAN"
+  id_jenis_rawat Int        @id @default(autoincrement())
+  tipe_rawat     TipeRawat
 
-  resep       Resep[]
-  rawat_inap  RawatInap?
-  rawat_jalan RawatJalan?
-}
-
-model RawatInap {
-  id_jenis_rawat Int        @id
-  tanggal_masuk  DateTime
+  // Spesifik Rawat Inap
+  tanggal_masuk  DateTime?
   tanggal_keluar DateTime?
-  // Nullable karena pasien mungkin belum keluar (masih dirawat)
+  kamarId        Int?
+  kamar          Kamar?     @relation(fields: [kamarId], references: [id_kamar])
 
-  jenis_rawat    JenisRawat @relation(fields: [id_jenis_rawat], references: [id_jenis_rawat])
-
-  id_kamar Int
-  kamar    Kamar @relation(fields: [id_kamar], references: [id_kamar])
-}
-
-model RawatJalan {
-  id_jenis_rawat Int        @id
-  no_antrian     Int
+  // Spesifik Rawat Jalan
+  no_antrian     String?
   status_kontrol String?
-  jenis_rawat    JenisRawat @relation(fields: [id_jenis_rawat], references: [id_jenis_rawat])
-}
 
-// ── KAMAR ────────────────────────────────────────────────────
+  // Relasi
+  tindakan       Tindakan[]
+  resep          Resep[]
+}
 
 model Kamar {
-  id_kamar   Int     @id @default(autoincrement())
-  no_kamar   String
-  kelas      String
-  tarif      Decimal @db.Decimal(10, 2)
+  id_kamar  Int          @id @default(autoincrement())
+  no_kamar  String
+  kelas     String
+  tarif     Float
 
-  rawat_inap RawatInap[]
+  rawat_inap JenisRawat[]
 }
-
-// ── OBAT ─────────────────────────────────────────────────────
-
-model Obat {
-  id_obat   Int     @id @default(autoincrement())
-  nama_obat String
-  harga     Decimal @db.Decimal(10, 2)
-  stok      Int     @default(0)
-  // @default(0) = kalau tidak diisi saat buat data, stok otomatis 0
-
-  detail_obat DetailObat[]
-}
-
-// ── RESEP ─────────────────────────────────────────────────────
 
 model Resep {
-  id_resep      Int      @id @default(autoincrement())
-  tanggal_resep DateTime @default(now())
+  id_resep      Int        @id @default(autoincrement())
+  tanggal_resep DateTime
 
-  id_pemeriksaan Int
-  pemeriksaan    Pemeriksaan @relation(fields: [id_pemeriksaan], references: [id_pemeriksaan])
+  jenisRawatId  Int
+  jenis_rawat   JenisRawat @relation(fields: [jenisRawatId], references: [id_jenis_rawat])
 
-  id_jenis_rawat Int
-  jenis_rawat    JenisRawat @relation(fields: [id_jenis_rawat], references: [id_jenis_rawat])
+  obat          Obat[]     @relation("ResepObat")
+}
 
+model Obat {
+  id_obat     Int          @id @default(autoincrement())
+  nama_obat   String
+  harga       Float
+  stok        Int
+
+  resep       Resep[]      @relation("ResepObat")
   detail_obat DetailObat[]
 }
 
-// ── DETAIL OBAT ───────────────────────────────────────────────
-// Tabel junction antara Resep dan Obat (M:M)
-// Satu resep bisa berisi banyak obat, satu obat bisa ada di banyak resep
-// Tabel ini juga menyimpan detail tambahan: jumlah, dosis, dll
-
 model DetailObat {
-  id           Int     @id @default(autoincrement())
-  harga_satuan Decimal @db.Decimal(10, 2)
+  id_detail    Int        @id @default(autoincrement())
   jumlah       Int
   dosis        String?
   jenis_obat   String?
+  harga_satuan Float
 
-  id_resep Int
-  resep    Resep @relation(fields: [id_resep], references: [id_resep])
+  obatId       Int
+  obat         Obat       @relation(fields: [obatId], references: [id_obat])
 
-  id_obat  Int
-  obat     Obat  @relation(fields: [id_obat], references: [id_obat])
+  pembayaranId Int
+  pembayaran   Pembayaran @relation(fields: [pembayaranId], references: [id_pembayaran])
 }
 
-// ── PEMBAYARAN ────────────────────────────────────────────────
-
 model Pembayaran {
-  id_pembayaran     Int      @id @default(autoincrement())
-  jumlah            Decimal  @db.Decimal(10, 2)
-  tgl_pembayaran    DateTime @default(now())
+  id_pembayaran     Int          @id @default(autoincrement())
+  tgl_pembayaran    DateTime
+  jumlah            Float
   metode_pembayaran String
 
-  id_pasien Int
-  pasien    Pasien @relation(fields: [id_pasien], references: [id_pasien])
+  pasienId          Int
+  pasien            Pasien       @relation(fields: [pasienId], references: [id_pasien])
+
+  detail_obat       DetailObat[]
+}
+
+// ================= NEW MODELS =================
+
+model AkunPegawai {
+  id         Int     @id @default(autoincrement())
+  username   String  @unique
+  password   String
+  pegawaiId  Int     @unique
+  pegawai    Pegawai @relation(fields: [pegawaiId], references: [id_pegawai])
+}
+
+model Fasilitas {
+  id_fasilitas   Int     @id @default(autoincrement())
+  nama_fasilitas String
+  deskripsi      String? @db.Text
+  icon           String?
+}
+
+model JadwalDokter {
+  id_jadwal   Int     @id @default(autoincrement())
+  hari        String
+  jam_mulai   String
+  jam_selesai String
+  dokterId    Int
+  dokter      Pegawai @relation(fields: [dokterId], references: [id_pegawai])
 }
