@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 
 export const getAllPegawai = async (req: Request, res: Response) => {
   const pegawai = await prisma.pegawai.findMany({
