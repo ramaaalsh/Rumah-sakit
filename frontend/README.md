@@ -1,73 +1,32 @@
-# React + TypeScript + Vite
+# Frontend - Sistem Informasi Rumah Sakit
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Bagian frontend dari aplikasi Sistem Informasi Rumah Sakit, dibangun menggunakan React, Vite, dan Tailwind CSS v4.
 
-Currently, two official plugins are available:
+## 🛠️ Tech Stack
+- **Framework**: React 19 (Vite)
+- **Styling**: Tailwind CSS v4
+- **Icons**: Lucide React
+- **Routing**: React Router Dom v7
+- **HTTP Client**: Axios
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Cara Menjalankan
+1. Pastikan sudah berada di folder `frontend`.
+2. Install dependensi:
+   ```bash
+   npm install
+   ```
+3. Jalankan mode pengembangan:
+   ```bash
+   npm run dev
+   ```
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🏗️ Build untuk Produksi
+```bash
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📁 Struktur Folder
+- `src/components`: Komponen UI yang dapat digunakan kembali.
+- `src/pages`: Halaman utama aplikasi (Public, Admin, Dokter, Perawat).
+- `src/services`: Konfigurasi axios dan fungsi pemanggilan API.
+- `src/context`: State management (AuthContext).
