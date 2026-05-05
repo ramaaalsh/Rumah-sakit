@@ -17,6 +17,8 @@ import detailObatRoutes from './routes/detailObat';
 import pembayaranRoutes from './routes/pembayaran';
 import fasilitasRoutes from './routes/fasilitas';
 import jadwalDokterRoutes from './routes/jadwalDokter';
+import dokterRoutes from './routes/dokter';
+import perawatRoutes from './routes/perawat';
 
 dotenv.config();
 const app = express();
@@ -41,6 +43,8 @@ app.use('/api/detail-obat', detailObatRoutes);
 app.use('/api/pembayaran', pembayaranRoutes);
 app.use('/api/fasilitas', fasilitasRoutes);
 app.use('/api/jadwal-dokter', jadwalDokterRoutes);
+app.use('/api/dokter', dokterRoutes);
+app.use('/api/perawat', perawatRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'API RS Kelompok 2 Berjalan!' });

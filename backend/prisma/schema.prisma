@@ -90,9 +90,9 @@ model Pendaftaran {
   keterangan_daftar String?
 
   pasienId          Int
-  pasien            Pasien        @relation(fields: [pasienId], references: [id_pasien])
+  pasien            Pasien        @relation(fields: [pasienId], references: [id_pasien], onDelete: Cascade)
   adminId           Int
-  admin             Pegawai       @relation(fields: [adminId], references: [id_pegawai])
+  admin             Pegawai       @relation(fields: [adminId], references: [id_pegawai], onDelete: Cascade)
 
   pemeriksaan       Pemeriksaan[]
 }
@@ -104,11 +104,12 @@ model Pemeriksaan {
   diagnosa            String     @db.Text
 
   pendaftaranId       Int
-  pendaftaran         Pendaftaran @relation(fields: [pendaftaranId], references: [id_pendaftaran])
+  pendaftaran         Pendaftaran @relation(fields: [pendaftaranId], references: [id_pendaftaran], onDelete: Cascade)
   dokterId            Int
-  dokter              Pegawai     @relation(fields: [dokterId], references: [id_pegawai])
+  dokter              Pegawai     @relation(fields: [dokterId], references: [id_pegawai], onDelete: Cascade)
 
   penyakit            Penyakit[]  @relation("PemeriksaanPenyakit")
+  jenis_rawat         JenisRawat[]
 }
 
 model Penyakit {
@@ -126,7 +127,7 @@ model Tindakan {
   biaya_tindakan Float
 
   jenisRawatId   Int
-  jenis_rawat    JenisRawat @relation(fields: [jenisRawatId], references: [id_jenis_rawat])
+  jenis_rawat    JenisRawat @relation(fields: [jenisRawatId], references: [id_jenis_rawat], onDelete: Cascade)
 
   penyakit       Penyakit[] @relation("PenyakitTindakan")
 }
@@ -139,11 +140,14 @@ model JenisRawat {
   tanggal_masuk  DateTime?
   tanggal_keluar DateTime?
   kamarId        Int?
-  kamar          Kamar?     @relation(fields: [kamarId], references: [id_kamar])
+  kamar          Kamar?     @relation(fields: [kamarId], references: [id_kamar], onDelete: SetNull)
 
   // Spesifik Rawat Jalan
   no_antrian     String?
   status_kontrol String?
+
+  pemeriksaanId  Int?
+  pemeriksaan    Pemeriksaan? @relation(fields: [pemeriksaanId], references: [id_pemeriksaan], onDelete: Cascade)
 
   // Relasi
   tindakan       Tindakan[]
@@ -164,7 +168,7 @@ model Resep {
   tanggal_resep DateTime
 
   jenisRawatId  Int
-  jenis_rawat   JenisRawat @relation(fields: [jenisRawatId], references: [id_jenis_rawat])
+  jenis_rawat   JenisRawat @relation(fields: [jenisRawatId], references: [id_jenis_rawat], onDelete: Cascade)
 
   obat          Obat[]     @relation("ResepObat")
 }
@@ -187,10 +191,10 @@ model DetailObat {
   harga_satuan Float
 
   obatId       Int
-  obat         Obat       @relation(fields: [obatId], references: [id_obat])
+  obat         Obat       @relation(fields: [obatId], references: [id_obat], onDelete: Cascade)
 
   pembayaranId Int
-  pembayaran   Pembayaran @relation(fields: [pembayaranId], references: [id_pembayaran])
+  pembayaran   Pembayaran @relation(fields: [pembayaranId], references: [id_pembayaran], onDelete: Cascade)
 }
 
 model Pembayaran {
@@ -200,7 +204,7 @@ model Pembayaran {
   metode_pembayaran String
 
   pasienId          Int
-  pasien            Pasien       @relation(fields: [pasienId], references: [id_pasien])
+  pasien            Pasien       @relation(fields: [pasienId], references: [id_pasien], onDelete: Cascade)
 
   detail_obat       DetailObat[]
 }
@@ -212,7 +216,7 @@ model AkunPegawai {
   username   String  @unique
   password   String
   pegawaiId  Int     @unique
-  pegawai    Pegawai @relation(fields: [pegawaiId], references: [id_pegawai])
+  pegawai    Pegawai @relation(fields: [pegawaiId], references: [id_pegawai], onDelete: Cascade)
 }
 
 model Fasilitas {
@@ -228,5 +232,5 @@ model JadwalDokter {
   jam_mulai   String
   jam_selesai String
   dokterId    Int
-  dokter      Pegawai @relation(fields: [dokterId], references: [id_pegawai])
+  dokter      Pegawai @relation(fields: [dokterId], references: [id_pegawai], onDelete: Cascade)
 }

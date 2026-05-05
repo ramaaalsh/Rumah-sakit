@@ -2,8 +2,40 @@ import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 
 export const getAllKamar = async (req: Request, res: Response) => {
-  const data = await prisma.kamar.findMany({});
-  res.json(data);
+  const data = await prisma.kamar.findMany({
+    include: {
+      rawat_inap: {
+        where: {
+          tipe_rawat: 'RAWAT_INAP',
+          tanggal_keluar: null
+        },
+        include: {
+          pemeriksaan: {
+            include: {
+              pendaftaran: {
+                include: {
+                  pasien: true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
+  const formattedData = data.map(kamar => {
+    const terpakai = kamar.rawat_inap.length > 0;
+    const pasienNama = terpakai ? kamar.rawat_inap[0].pemeriksaan?.pendaftaran?.pasien?.nama || 'Pasien Anonim' : null;
+    
+    return {
+      ...kamar,
+      status: terpakai ? 'TERPAKAI' : 'TERSEDIA',
+      pasienNama
+    };
+  });
+
+  res.json(formattedData);
 };
 
 export const getKamarById = async (req: Request, res: Response) => {

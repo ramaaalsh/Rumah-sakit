@@ -129,6 +129,23 @@ export const KamarPage: React.FC = () => {
             { header: 'Kelas', accessor: (row) => renderKelas(row.kelas) },
             { header: 'Tarif', accessor: (row) => formatRupiah(row.tarif) },
             {
+              header: 'Status',
+              accessor: (row) => (
+                <div className="flex flex-col">
+                  <span className={`text-xs px-2 py-1 rounded-full font-bold w-fit ${
+                    row.status === 'TERPAKAI' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                  }`}>
+                    {row.status || 'TERSEDIA'}
+                  </span>
+                  {row.status === 'TERPAKAI' && row.pasienNama && (
+                    <span className="text-[10px] text-gray-500 mt-1 font-medium">
+                      Pasien: {row.pasienNama}
+                    </span>
+                  )}
+                </div>
+              )
+            },
+            {
               header: 'Aksi',
               accessor: (row) => (
                 <div className="flex gap-2">

@@ -1,11 +1,14 @@
 {
     "compilerOptions": {
-        "target": "es2020", //target versi javascript setelah dicompile dari typescript
-        "module": "commonjs", // sistem bawaan dari nodejs untuk import yang dipakai dihasil compile
-        "lib": ["ES2020", "DOM"], //fitur/lib apa saja yang boleh dipakai di dalam kode
+        "target": "es2020",
+        "module": "commonjs",
+        "lib": ["ES2020", "DOM"],
         "types": ["node"],
-        "outDir": "./dist", //folder tempat hasil compile dari ts ke js
-        "resolveJsonModule": true, //biar bisa import file .json lgsg di ts
+        "outDir": "./dist",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "strict": true
     },
     "include" : ["src/**/*", "prisma/**/*"], //ngasih tau ts biar yang diproses cuman folder src dan children nya
     "exclude" : ["node_modules", "dist"] //biar folder nya diabaikan/ga diproses

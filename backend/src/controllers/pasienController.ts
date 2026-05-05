@@ -78,11 +78,20 @@ export const updatePasien = async (req: Request, res: Response) => {
 };
 
 export const deletePasien = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id as string);
-  
-  await prisma.pasien.delete({
-    where: { id_pasien: id }
-  });
-  
-  res.json({ message: 'Pasien berhasil dihapus' });
+  try {
+    const id = parseInt(req.params.id as string);
+    
+    await prisma.pasien.delete({
+      where: { id_pasien: id }
+    });
+    
+    res.json({ message: 'Pasien berhasil dihapus' });
+  } catch (error: any) {
+    console.error('deletePasien error:', error);
+    if (error.code === 'P2025') {
+      res.status(404).json({ error: 'Data pasien tidak ditemukan' });
+    } else {
+      res.status(500).json({ error: 'Gagal menghapus data pasien. Terjadi kesalahan pada server.' });
+    }
+  }
 };

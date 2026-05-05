@@ -14,7 +14,7 @@ export const PublicNavbar: React.FC = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
               <Stethoscope className="w-8 h-8 text-blue-600" />
-              <span className="font-bold text-xl text-blue-800">RS Kelompok 2</span>
+              <span className="font-bold text-xl text-blue-800">RS Kelompok 3</span>
             </Link>
           </div>
           

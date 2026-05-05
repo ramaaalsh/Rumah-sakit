@@ -23,18 +23,35 @@ import { PembayaranPage } from './pages/admin/PembayaranPage';
 import { FasilitasAdminPage } from './pages/admin/FasilitasAdminPage';
 import { JadwalDokterPage } from './pages/admin/JadwalDokterPage';
 
+// Dokter Pages
+import { DokterDashboard } from './pages/dokter/DokterDashboard';
+
+// Perawat Pages
+import { PerawatDashboard } from './pages/perawat/PerawatDashboard';
+
 function App() {
   return (
     <AuthProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/dokter" element={<DokterPage />} />
-        <Route path="/fasilitas" element={<FasilitasPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        
+        {/* Protected Dokter Routes */}
+        <Route path="/dokter/dashboard" element={
+          <ProtectedRoute allowedRoles={['DOKTER']}>
+            <DokterDashboard />
+          </ProtectedRoute>
+        } />
+
+        {/* Protected Perawat Routes */}
+        <Route path="/perawat/dashboard" element={
+          <ProtectedRoute allowedRoles={['PERAWAT']}>
+            <PerawatDashboard />
+          </ProtectedRoute>
+        } />
 
         {/* Protected Admin Routes */}
         <Route path="/admin" element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['ADMIN']}>
             <AdminLayout />
           </ProtectedRoute>
         }>
@@ -50,6 +67,12 @@ function App() {
           <Route path="jadwal-dokter" element={<JadwalDokterPage />} />
         </Route>
 
+        {/* Public Pages */}
+        <Route path="/dokter" element={<DokterPage />} />
+        <Route path="/fasilitas" element={<FasilitasPage />} />
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>

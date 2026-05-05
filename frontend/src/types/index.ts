@@ -71,6 +71,8 @@ export interface Kamar {
   no_kamar: string;
   kelas: string;
   tarif: number;
+  status?: 'TERPAKAI' | 'TERSEDIA';
+  pasienNama?: string | null;
 }
 
 export interface Obat {

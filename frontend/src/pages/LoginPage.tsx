@@ -21,8 +21,20 @@ export const LoginPage: React.FC = () => {
 
     try {
       const res = await api.post('/auth/login', { username, password });
-      login(res.data.token, res.data.user);
-      navigate('/admin/dashboard');
+      const { token, user } = res.data;
+      login(token, user);
+      
+      const role = user.role.toUpperCase();
+      
+      if (role === 'ADMIN') {
+        navigate('/admin/dashboard');
+      } else if (role === 'DOKTER') {
+        navigate('/dokter/dashboard');
+      } else if (role === 'PERAWAT') {
+        navigate('/perawat/dashboard');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Terjadi kesalahan saat login');
     } finally {
@@ -39,7 +51,7 @@ export const LoginPage: React.FC = () => {
               <Stethoscope className="w-8 h-8 text-blue-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Login Staff</h1>
-            <p className="text-gray-500 text-sm mt-1">Sistem Informasi RS Kelompok 2</p>
+            <p className="text-gray-500 text-sm mt-1">Sistem Informasi RS Kelompok 3</p>
           </div>
 
           {error && (

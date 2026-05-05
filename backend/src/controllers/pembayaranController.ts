@@ -40,9 +40,20 @@ export const updatePembayaran = async (req: Request, res: Response) => {
 };
 
 export const deletePembayaran = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id as string);
-  await prisma.pembayaran.delete({
-    where: { id_pembayaran: id }
-  });
-  res.json({ message: 'Pembayaran berhasil dihapus' });
+  try {
+    const id = parseInt(req.params.id as string);
+    
+    await prisma.pembayaran.delete({
+      where: { id_pembayaran: id }
+    });
+
+    res.json({ message: 'Pembayaran berhasil dihapus' });
+  } catch (error: any) {
+    console.error('deletePembayaran error:', error);
+    if (error.code === 'P2025') {
+      res.status(404).json({ error: 'Data pembayaran tidak ditemukan' });
+    } else {
+      res.status(500).json({ error: 'Gagal menghapus data pembayaran. Terjadi kesalahan pada server.' });
+    }
+  }
 };
