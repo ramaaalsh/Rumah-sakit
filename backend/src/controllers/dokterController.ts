@@ -162,7 +162,66 @@ export const inputTindakanMedis = async (req: Request, res: Response) => {
           });
         }
       }
+
+      // 5. Update Status Pendaftaran ke SELESAI
+      const pData = await tx.pemeriksaan.findUnique({
+        where: { id_pemeriksaan: Number(id_pemeriksaan) },
+        include: { pendaftaran: true }
+      });
+
+
+      if (pData) {
+        await tx.pendaftaran.update({
+          where: { id_pendaftaran: pData.pendaftaranId },
+          data: { status: 'SELESAI' }
+        });
+
+        // 6. Kalkulasi Total Biaya & Buat/Update Pembayaran
+        // a. Biaya Tindakan
+        const totalTindakan = (tindakan || []).reduce((acc: number, t: any) => acc + Number(t.biaya || 0), 0);
+
+        // b. Biaya Obat
+        let totalObat = 0;
+        if (resep && resep.length > 0) {
+          for (const r of resep) {
+            const obat = await tx.obat.findUnique({ where: { id_obat: Number(r.obatId) } });
+            if (obat) {
+              totalObat += (obat.harga * Number(r.jumlah));
+            }
+          }
+        }
+
+        // c. Biaya Kamar (Asumsi 1 hari untuk demo jika baru masuk)
+        let totalKamar = 0;
+        if (tipe_rawat === 'RAWAT_INAP' && kamarId) {
+          const kamar = await tx.kamar.findUnique({ where: { id_kamar: Number(kamarId) } });
+          if (kamar) {
+            totalKamar = kamar.tarif;
+          }
+        }
+
+        const totalBiaya = totalTindakan + totalObat + totalKamar;
+
+        // d. Create/Update Pembayaran
+        await tx.pembayaran.upsert({
+          where: { pendaftaranId: pData.pendaftaranId },
+          update: {
+            jumlah: totalBiaya,
+            pasienId: pData.pendaftaran.pasienId
+          },
+          create: {
+            pendaftaranId: pData.pendaftaranId,
+            pasienId: pData.pendaftaran.pasienId,
+            jumlah: totalBiaya,
+            status: 'PENDING',
+            metode_pembayaran: pData.pendaftaran.metode_pembayaran
+          }
+
+        });
+      }
     });
+
+
 
     res.json({ message: 'Data medis berhasil disimpan' });
   } catch (error) {

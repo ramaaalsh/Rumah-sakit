@@ -27,8 +27,10 @@ interface PatientData {
   keluhan: string;
   diagnosa: string;
   pendaftaran: {
+    status: 'MENUNGGU' | 'DALAM_TINDAKAN' | 'SELESAI';
     pasien: {
       nama: string;
+
       jenis_kelamin: string;
       tanggal_lahir: string;
       jalan: string;
@@ -310,15 +312,31 @@ export const DokterDashboard: React.FC = () => {
                       <div className="flex items-center gap-2 text-gray-400 font-bold text-sm">
                         <Clock className="w-4 h-4" />
                         <span>Kunjungan: {formatDate(p.tanggal_pemeriksaan)}</span>
+                        
+                        {/* Status Badge */}
+                        <span className={`ml-4 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase ${
+                          p.pendaftaran.status === 'SELESAI' 
+                            ? 'bg-emerald-100 text-emerald-700' 
+                            : p.pendaftaran.status === 'DALAM_TINDAKAN'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-orange-100 text-orange-700'
+                        }`}>
+                          {p.pendaftaran.status}
+                        </span>
                       </div>
                       <button 
                         onClick={() => openInputModal(p)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-black text-sm flex items-center gap-2 shadow-lg shadow-blue-100 transition-all hover:scale-105 active:scale-95"
+                        className={`${
+                          p.pendaftaran.status === 'SELESAI' 
+                            ? 'bg-gray-800 hover:bg-black' 
+                            : 'bg-blue-600 hover:bg-blue-700'
+                        } text-white px-6 py-3 rounded-2xl font-black text-sm flex items-center gap-2 shadow-lg transition-all hover:scale-105 active:scale-95`}
                       >
-                        <Plus className="w-5 h-5" />
-                        TANGANI PASIEN
+                        {p.pendaftaran.status === 'SELESAI' ? <Clipboard className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                        {p.pendaftaran.status === 'SELESAI' ? 'EDIT REKAM MEDIS' : 'TANGANI PASIEN'}
                       </button>
                     </div>
+
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10 flex-1">
                       <div className="space-y-8">

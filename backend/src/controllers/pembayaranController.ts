@@ -3,9 +3,16 @@ import { prisma } from '../lib/prisma';
 
 export const getAllPembayaran = async (req: Request, res: Response) => {
   const data = await prisma.pembayaran.findMany({
-    include: { pasien: true, detail_obat: { include: { obat: true } } }});
+    include: { 
+      pasien: true, 
+      pendaftaran: true,
+      detail_obat: { include: { obat: true } } 
+    },
+    orderBy: { status: 'desc' } // PENDING (P) will likely come before LUNAS (L) or vice versa depending on string sort, but let's just sort
+  });
   res.json(data);
 };
+
 
 export const getPembayaranById = async (req: Request, res: Response) => {
   const id = parseInt(req.params.id as string);

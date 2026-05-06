@@ -149,11 +149,26 @@ export const PembayaranPage: React.FC = () => {
     }
   };
 
+  const handleConfirmPay = async (id: number) => {
+    try {
+      await api.put(`/pembayaran/${id}`, {
+        status: 'LUNAS',
+        tgl_pembayaran: new Date()
+      });
+      fetchData();
+      alert('Pembayaran berhasil dikonfirmasi!');
+    } catch (error) {
+      console.error('Confirm pay failed', error);
+      alert('Gagal konfirmasi pembayaran');
+    }
+  };
+
   const formatRupiah = (angka: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(angka);
   };
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return '-';
     return new Date(dateStr).toLocaleDateString('id-ID');
   };
 
@@ -163,7 +178,7 @@ export const PembayaranPage: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900">Data Pembayaran</h1>
         <button onClick={openAddModal} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center transition-colors">
           <Plus className="w-5 h-5 mr-2" />
-          Tambah Pembayaran
+          Tambah Pembayaran Manual
         </button>
       </div>
 
@@ -175,13 +190,28 @@ export const PembayaranPage: React.FC = () => {
           keyExtractor={(row) => row.id_pembayaran}
           columns={[
             { header: 'Pasien', accessor: (row) => row.pasien?.nama || '-' },
-            { header: 'Tanggal', accessor: (row) => formatDate(row.tgl_pembayaran) },
-            { header: 'Metode', accessor: 'metode_pembayaran' },
-            { header: 'Jumlah', accessor: (row) => <span className="font-bold text-green-700">{formatRupiah(row.jumlah)}</span> },
+            { header: 'Tgl Bayar', accessor: (row) => formatDate(row.tgl_pembayaran) },
+            { header: 'Metode', accessor: (row) => row.metode_pembayaran || '-' },
+            { header: 'Total Tagihan', accessor: (row) => <span className="font-bold text-gray-900">{formatRupiah(row.jumlah)}</span> },
+            { header: 'Status', accessor: (row) => (
+              <span className={`px-2 py-1 rounded-full text-[10px] font-black tracking-widest uppercase ${
+                row.status === 'LUNAS' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'
+              }`}>
+                {row.status}
+              </span>
+            )},
             {
               header: 'Aksi',
               accessor: (row) => (
                 <div className="flex gap-2">
+                  {row.status === 'PENDING' && (
+                    <button 
+                      onClick={() => handleConfirmPay(row.id_pembayaran)}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-bold"
+                    >
+                      Konfirmasi Bayar
+                    </button>
+                  )}
                   <button onClick={() => openDeleteConfirm(row.id_pembayaran)} className="p-1 text-red-600 hover:bg-red-50 rounded">
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -191,6 +221,7 @@ export const PembayaranPage: React.FC = () => {
           ]}
         />
       )}
+
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Tambah Pembayaran">
         <form onSubmit={handleSubmit} className="space-y-4">

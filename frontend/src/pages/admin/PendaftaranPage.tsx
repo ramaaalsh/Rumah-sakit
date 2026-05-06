@@ -21,6 +21,7 @@ export const PendaftaranPage: React.FC = () => {
     tanggal_daftar: '',
     keterangan_daftar: '',
     pasienId: '',
+    metode_pembayaran: 'CASH',
   });
 
   const fetchData = async () => {
@@ -48,16 +49,18 @@ export const PendaftaranPage: React.FC = () => {
       tanggal_daftar: new Date().toISOString().split('T')[0],
       keterangan_daftar: '',
       pasienId: '',
+      metode_pembayaran: 'CASH',
     });
     setSelectedId(null);
     setIsModalOpen(true);
   };
 
-  const openEditModal = (pend: Pendaftaran) => {
+  const openEditModal = (pend: any) => {
     setFormData({
       tanggal_daftar: new Date(pend.tanggal_daftar).toISOString().split('T')[0],
       keterangan_daftar: pend.keterangan_daftar || '',
       pasienId: pend.pasien.id_pasien.toString(),
+      metode_pembayaran: pend.metode_pembayaran || 'CASH',
     });
     setSelectedId(pend.id_pendaftaran);
     setIsModalOpen(true);
@@ -74,7 +77,8 @@ export const PendaftaranPage: React.FC = () => {
       tanggal_daftar: new Date(formData.tanggal_daftar),
       keterangan_daftar: formData.keterangan_daftar,
       pasienId: parseInt(formData.pasienId),
-      adminId: user?.id
+      adminId: user?.id,
+      metode_pembayaran: formData.metode_pembayaran
     };
 
     try {
@@ -127,6 +131,9 @@ export const PendaftaranPage: React.FC = () => {
             { header: 'Nama Pasien', accessor: (row) => row.pasien?.nama || '-' },
             { header: 'Tanggal Daftar', accessor: (row) => formatDate(row.tanggal_daftar) },
             { header: 'Keterangan', accessor: 'keterangan_daftar' },
+            { header: 'Pembayaran', accessor: (row) => (
+              <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold">{row.metode_pembayaran || 'CASH'}</span>
+            )},
             { header: 'Admin Pencatat', accessor: (row) => row.admin?.nama || '-' },
             {
               header: 'Aksi',
@@ -160,10 +167,21 @@ export const PendaftaranPage: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Daftar *</label>
             <input required type="date" value={formData.tanggal_daftar} onChange={e => setFormData({...formData, tanggal_daftar: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran *</label>
+              <select required value={formData.metode_pembayaran} onChange={e => setFormData({...formData, metode_pembayaran: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                <option value="CASH">CASH</option>
+                <option value="TRANSFER">TRANSFER</option>
+                <option value="BPJS">BPJS / ASURANSI</option>
+              </select>
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Keterangan / Keluhan Awal</label>
             <textarea rows={3} value={formData.keterangan_daftar} onChange={e => setFormData({...formData, keterangan_daftar: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
           </div>
+
           
           <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
             Pendaftaran ini akan dicatat atas nama Admin: <strong>{user?.nama}</strong>

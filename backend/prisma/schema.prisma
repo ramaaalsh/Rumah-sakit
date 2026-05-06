@@ -21,6 +21,13 @@ enum TipeRawat {
   RAWAT_JALAN
 }
 
+enum StatusPendaftaran {
+  MENUNGGU
+  DALAM_TINDAKAN
+  SELESAI
+}
+
+
 // ================= MODELS =================
 
 model Pegawai {
@@ -85,17 +92,23 @@ model PasienTelp {
 }
 
 model Pendaftaran {
-  id_pendaftaran    Int           @id @default(autoincrement())
+  id_pendaftaran    Int               @id @default(autoincrement())
   tanggal_daftar    DateTime
   keterangan_daftar String?
+  status            StatusPendaftaran @default(MENUNGGU)
+  metode_pembayaran String?           @default("CASH") // Tambahan opsi pembayaran
+
 
   pasienId          Int
+
   pasien            Pasien        @relation(fields: [pasienId], references: [id_pasien], onDelete: Cascade)
   adminId           Int
   admin             Pegawai       @relation(fields: [adminId], references: [id_pegawai], onDelete: Cascade)
 
   pemeriksaan       Pemeriksaan[]
+  pembayaran        Pembayaran?
 }
+
 
 model Pemeriksaan {
   id_pemeriksaan      Int        @id @default(autoincrement())
@@ -199,15 +212,20 @@ model DetailObat {
 
 model Pembayaran {
   id_pembayaran     Int          @id @default(autoincrement())
-  tgl_pembayaran    DateTime
+  tgl_pembayaran    DateTime?
   jumlah            Float
-  metode_pembayaran String
+  metode_pembayaran String?      // Bisa diisi pas pendaftaran atau pas bayar
+  status            String       @default("PENDING") // PENDING, LUNAS
 
   pasienId          Int
   pasien            Pasien       @relation(fields: [pasienId], references: [id_pasien], onDelete: Cascade)
+  
+  pendaftaranId     Int?         @unique
+  pendaftaran       Pendaftaran? @relation(fields: [pendaftaranId], references: [id_pendaftaran], onDelete: Cascade)
 
   detail_obat       DetailObat[]
 }
+
 
 // ================= NEW MODELS =================
 
